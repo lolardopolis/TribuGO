@@ -4,9 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#007AFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TribuGO">
     <title>TribuGO - Sistema de Seguridad y Trazabilidad</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="styles-advanced.css">
+    <link rel="stylesheet" href="pwa-styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 
@@ -305,6 +311,60 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // Detectar si la app puede ser instalada
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Mostrar botón de instalación
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            // Crear botón de instalación si no existe
+            if (!document.getElementById('install-button')) {
+                const installBtn = document.createElement('button');
+                installBtn.id = 'install-button';
+                installBtn.className = 'install-pwa-button';
+                installBtn.innerHTML = '📱 Instalar App';
+                installBtn.onclick = installPWA;
+                document.body.appendChild(installBtn);
+            }
+        }
+
+        function installPWA() {
+            const installBtn = document.getElementById('install-button');
+            if (installBtn) installBtn.style.display = 'none';
+
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Usuario aceptó instalar la PWA');
+                        if (typeof showToast === 'function') {
+                            showToast('¡App instalada exitosamente! 🎉', 'success');
+                        }
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+    </script>
 </body>
 
 </html>
