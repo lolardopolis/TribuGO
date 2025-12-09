@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TribuGO - Sistema de Seguridad y Trazabilidad</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-advanced.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="screen active">
+        <div class="gradient-bg">
+            <div class="login-container">
+                <div class="logo-section">
+                    <div class="shield-icon">🛡️</div>
+                    <h1 class="app-title">TribuGO</h1>
+                    <p class="app-subtitle">Sistema de Seguridad y Trazabilidad</p>
+                </div>
+
+                <div class="form-section">
+                    <div class="input-group">
+                        <label>Correo Institucional</label>
+                        <div class="input-with-icon">
+                            <span class="icon">✉️</span>
+                            <input type="email" id="email-input" placeholder="estudiante@universidad.edu">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <div class="input-with-icon">
+                            <span class="icon">🔒</span>
+                            <input type="password" id="password-input" placeholder="Contraseña">
+                            <button class="toggle-password" onclick="togglePassword()">👁️</button>
+                        </div>
+                    </div>
+
+                    <div id="error-message" class="error-message hidden"></div>
+
+                    <button class="primary-button" onclick="login()">
+                        <span class="icon">➡️</span>
+                        Iniciar Sesión
+                    </button>
+
+                    <p class="info-text">Para el prototipo, cualquier correo institucional es válido</p>
+                </div>
+
+                <div class="footer-section">
+                    <p class="version-text">Versión 1.0.0 (Prototipo)</p>
+                    <p class="tagline">Tu seguridad es nuestra prioridad</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla Principal (Tabs) -->
+    <div id="main-screen" class="screen">
+        <!-- Contenido de los tabs -->
+        <div id="tab-content">
+            <!-- Tab Inicio -->
+            <div id="inicio-tab" class="tab-pane active">
+                <div id="map-container"></div>
+                <div class="bottom-card">
+                    <div class="card-content">
+                        <div class="icon-large">📍</div>
+                        <h2>¿Listo para viajar?</h2>
+                        <p class="subtitle">Inicia tu trayecto al campus para que podamos monitorear tu seguridad</p>
+
+                        <button class="primary-button large" onclick="startTrip()">
+                            <span class="icon">▶️</span>
+                            Iniciar Trayecto al Campus
+                        </button>
+
+                        <div class="info-rows">
+                            <div class="info-row">
+                                <span class="icon">🛡️</span>
+                                <span>Monitoreo GPS en tiempo real</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="icon">🔔</span>
+                                <span>Botón SOS de emergencia</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="icon">⏱️</span>
+                                <span>Registro completo de tu trayecto</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Historial -->
+            <div id="historial-tab" class="tab-pane">
+                <div class="history-container">
+                    <div class="history-header">
+                        <h2>Historial</h2>
+                        <div class="history-actions">
+                            <button class="icon-button" onclick="exportTripData()" title="Exportar datos">
+                                <span>💾</span>
+                            </button>
+                            <button class="icon-button" onclick="importTripData()" title="Importar datos">
+                                <span>📥</span>
+                            </button>
+                            <button class="icon-button" onclick="toggleDarkMode()" title="Modo oscuro">
+                                <span>🌙</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon">🚗</div>
+                            <div class="stat-value" id="total-trips">0</div>
+                            <div class="stat-label">Viajes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🗺️</div>
+                            <div class="stat-value" id="total-distance">0 km</div>
+                            <div class="stat-label">Distancia</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-value" id="total-sos">0</div>
+                            <div class="stat-label">SOS</div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <h3 class="section-title">Trayectos recientes</h3>
+                        <button class="text-button" onclick="clearHistory()">Limpiar todo</button>
+                    </div>
+
+                    <div id="trips-list" class="trips-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">🕐</div>
+                            <h3>No hay trayectos registrados</h3>
+                            <p>Tus viajes al campus aparecerán aquí</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Perfil -->
+            <div id="perfil-tab" class="tab-pane">
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="avatar" id="user-avatar">JP</div>
+                        <div class="user-info">
+                            <h2 id="user-name">Usuario</h2>
+                            <p id="user-email">usuario@universidad.edu</p>
+                            <span class="verified-badge">✓ Miembro verificado</span>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <h3>Configuración</h3>
+                        <div class="menu-item">
+                            <span class="icon">🔔</span>
+                            <span>Notificaciones</span>
+                            <span class="chevron">›</span>
+                        </div>
+                        <div class="menu-item">
+                            <span class="icon">🔒</span>
+                            <span>Privacidad</span>
+                            <span class="chevron">›</span>
+                        </div>
+                        <div class="menu-item">
+                            <span class="icon">📍</span>
+                            <span>Permisos de ubicación</span>
+                            <span class="chevron">›</span>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <h3>Seguridad</h3>
+                        <div class="menu-item">
+                            <span class="icon">👥</span>
+                            <span>Contactos de emergencia</span>
+                            <span class="chevron">›</span>
+                        </div>
+                        <div class="menu-item">
+                            <span class="icon">🚨</span>
+                            <span>Configuración SOS</span>
+                            <span class="chevron">›</span>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <h3>Información</h3>
+                        <div class="menu-item">
+                            <span class="icon">ℹ️</span>
+                            <span>Acerca de TribuGO</span>
+                            <span class="chevron">›</span>
+                        </div>
+                        <div class="menu-item">
+                            <span class="icon">📄</span>
+                            <span>Términos y condiciones</span>
+                            <span class="chevron">›</span>
+                        </div>
+                        <div class="menu-item">
+                            <span class="icon">🔐</span>
+                            <span>Política de privacidad</span>
+                            <span class="chevron">›</span>
+                        </div>
+                        <div class="menu-item no-chevron">
+                            <span class="icon">#️⃣</span>
+                            <span>Versión</span>
+                            <span class="version">1.0.0 (Prototipo)</span>
+                        </div>
+                    </div>
+
+                    <button class="logout-button" onclick="logout()">
+                        <span class="icon">🚪</span>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <button class="tab-button active" onclick="switchTab('inicio')">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">Inicio</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('historial')">
+                <span class="tab-icon">🕐</span>
+                <span class="tab-label">Historial</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('perfil')">
+                <span class="tab-icon">👤</span>
+                <span class="tab-label">Perfil</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Trayecto Activo -->
+    <div id="active-trip-screen" class="screen">
+        <div id="trip-map-container"></div>
+
+        <div class="trip-info-card">
+            <div class="trip-header">
+                <div>
+                    <h3>Trayecto en curso</h3>
+                    <p class="trip-subtitle">Estás siendo monitoreado</p>
+                </div>
+                <div class="gps-indicator">
+                    <span class="pulse-dot"></span>
+                    <span>GPS Activo</span>
+                </div>
+            </div>
+
+            <div class="trip-stats">
+                <div class="stat-item">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value" id="trip-time">00:00</div>
+                    <div class="stat-label">Tiempo</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">📍</div>
+                    <div class="stat-value" id="trip-points">0</div>
+                    <div class="stat-label">Puntos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">🗺️</div>
+                    <div class="stat-value" id="trip-distance">0 m</div>
+                    <div class="stat-label">Distancia</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="trip-actions">
+            <button class="sos-button" onclick="activateSOS()">
+                <span class="icon">⚠️</span>
+                EMERGENCIA SOS
+            </button>
+
+            <div class="action-buttons">
+                <button class="success-button" onclick="endTrip()">
+                    <span class="icon">✓</span>
+                    He llegado
+                </button>
+                <button class="secondary-button" onclick="scanQR()">
+                    <span class="icon">📷</span>
+                    Escanear QR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalle de Viaje -->
+    <div id="trip-detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalle del Trayecto</h2>
+                <button class="close-button" onclick="closeModal()">✕</button>
+            </div>
+            <div id="trip-detail-content"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
